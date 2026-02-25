@@ -1,0 +1,50 @@
+/* ===== Footer ===== */
+.footer {
+    width: 100%;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: center;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.footer-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #8888a8;
+}
+
+.footer-text strong {
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.heart {
+    display: inline-block;
+    animation: heartbeat 1.4s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.footer-copy {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: #55556e;
+}
