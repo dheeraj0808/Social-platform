@@ -4,6 +4,7 @@ import Header from './Component/Header/Header';
 import Footer from './Component/Footer/Footer';
 import Feed from './Pages/Feed';
 import CreatePost from './Pages/CreatePost';
+import Profile from './Pages/Profile';
 import './App.css';
 
 const App = () => {
@@ -27,6 +28,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Feed posts={posts} onUpdatePost={updatePost} />} />
             <Route path="/create" element={<CreatePost onPost={addPost} />} />
+            <Route path="/profile" element={<Profile posts={posts} />} />
           </Routes>
         </main>
         <Footer />
