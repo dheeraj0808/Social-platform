@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Feed.css';
 
-const Feed = ({ posts }) => {
+const Feed = ({ posts, onUpdatePost }) => {
     const navigate = useNavigate();
     const [likedPosts, setLikedPosts] = useState({});
     const [savedPosts, setSavedPosts] = useState({});
     const [doubleTapId, setDoubleTapId] = useState(null);
     const [expandedDescs, setExpandedDescs] = useState({});
+    const [openComments, setOpenComments] = useState({});
+    const [commentInputs, setCommentInputs] = useState({});
+    const [shareToast, setShareToast] = useState(null);
+    const commentInputRefs = useRef({});
 
     const toggleLike = (postId) => {
         setLikedPosts((prev) => ({
@@ -38,6 +42,70 @@ const Feed = ({ posts }) => {
         }));
     };
 
+    // Comment functions
+    const toggleComments = (postId) => {
+        setOpenComments((prev) => ({
+            ...prev,
+            [postId]: !prev[postId],
+        }));
+        // Focus the input when opening
+        setTimeout(() => {
+            if (!openComments[postId] && commentInputRefs.current[postId]) {
+                commentInputRefs.current[postId].focus();
+            }
+        }, 100);
+    };
+
+    const handleCommentInput = (postId, value) => {
+        setCommentInputs((prev) => ({
+            ...prev,
+            [postId]: value,
+        }));
+    };
+
+    const submitComment = (postId) => {
+        const text = (commentInputs[postId] || '').trim();
+        if (!text) return;
+
+        const post = posts.find((p) => p.id === postId);
+        if (!post) return;
+
+        const newComment = {
+            id: Date.now(),
+            author: 'You',
+            text: text,
+            timestamp: new Date().toISOString(),
+        };
+
+        const updatedPost = {
+            ...post,
+            comments: [...post.comments, newComment],
+        };
+
+        onUpdatePost(updatedPost);
+        setCommentInputs((prev) => ({ ...prev, [postId]: '' }));
+    };
+
+    const handleCommentKeyDown = (e, postId) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            submitComment(postId);
+        }
+    };
+
+    // Share function
+    const handleShare = (postId) => {
+        const shareUrl = `${window.location.origin}/post/${postId}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            setShareToast(postId);
+            setTimeout(() => setShareToast(null), 2000);
+        }).catch(() => {
+            // Fallback for clipboard failures
+            setShareToast(postId);
+            setTimeout(() => setShareToast(null), 2000);
+        });
+    };
+
     const getTimeAgo = (timestamp) => {
         const now = new Date();
         const postDate = new Date(timestamp);
@@ -54,6 +122,16 @@ const Feed = ({ posts }) => {
 
     return (
         <div className="feed-page">
+            {/* Share Toast Notification */}
+            {shareToast && (
+                <div className="share-toast">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Link copied to clipboard!
+                </div>
+            )}
+
             {/* Feed Top Bar */}
             <div className="feed-top-bar">
                 <div className="feed-header-section">
@@ -64,7 +142,6 @@ const Feed = ({ posts }) => {
                             : 'No posts yet — be the first to share!'}
                     </p>
                 </div>
-
             </div>
 
             {posts.length === 0 ? (
@@ -174,16 +251,27 @@ const Feed = ({ posts }) => {
                                             </svg>
                                         )}
                                     </button>
-                                    <button className="act-btn" title="Comment">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                    <button
+                                        className={`act-btn comment-btn ${openComments[post.id] ? 'active' : ''}`}
+                                        onClick={() => toggleComments(post.id)}
+                                        title="Comment"
+                                    >
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={openComments[post.id] ? '#a78bfa' : '#c0c0d0'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                                         </svg>
                                     </button>
-                                    <button className="act-btn" title="Share">
+                                    <button
+                                        className="act-btn share-btn"
+                                        onClick={() => handleShare(post.id)}
+                                        title="Share"
+                                    >
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="22" y1="2" x2="11" y2="13" />
                                             <polygon points="22 2 15 22 11 13 2 9 22 2" />
                                         </svg>
+                                        {shareToast === post.id && (
+                                            <span className="share-copied-badge">Copied!</span>
+                                        )}
                                     </button>
                                 </div>
                                 <button
@@ -224,12 +312,65 @@ const Feed = ({ posts }) => {
                                 )}
                             </div>
 
-                            {/* View Comments */}
-                            {post.comments.length > 0 && (
-                                <button className="view-comments-btn">
-                                    View all {post.comments.length} comments
+                            {/* View All Comments Toggle */}
+                            {post.comments.length > 0 && !openComments[post.id] && (
+                                <button
+                                    className="view-comments-btn"
+                                    onClick={() => toggleComments(post.id)}
+                                >
+                                    View all {post.comments.length} comment{post.comments.length > 1 ? 's' : ''}
                                 </button>
                             )}
+
+                            {/* Comments Section */}
+                            <div className={`comments-section ${openComments[post.id] ? 'open' : ''}`}>
+                                {openComments[post.id] && (
+                                    <>
+                                        {/* Comments List */}
+                                        {post.comments.length > 0 ? (
+                                            <div className="comments-list">
+                                                {post.comments.map((comment) => (
+                                                    <div key={comment.id} className="comment-item">
+                                                        <div className="comment-avatar">
+                                                            {comment.author === 'You' ? '😊' : '👤'}
+                                                        </div>
+                                                        <div className="comment-body">
+                                                            <strong className="comment-author">{comment.author}</strong>
+                                                            <span className="comment-text">{comment.text}</span>
+                                                            <span className="comment-time">{getTimeAgo(comment.timestamp)}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="no-comments">
+                                                <span>No comments yet. Be the first!</span>
+                                            </div>
+                                        )}
+
+                                        {/* Comment Input */}
+                                        <div className="comment-input-wrapper">
+                                            <span className="comment-input-avatar">😊</span>
+                                            <input
+                                                ref={(el) => (commentInputRefs.current[post.id] = el)}
+                                                type="text"
+                                                className="comment-input"
+                                                placeholder="Add a comment..."
+                                                value={commentInputs[post.id] || ''}
+                                                onChange={(e) => handleCommentInput(post.id, e.target.value)}
+                                                onKeyDown={(e) => handleCommentKeyDown(e, post.id)}
+                                            />
+                                            <button
+                                                className={`comment-post-btn ${(commentInputs[post.id] || '').trim() ? 'active' : ''}`}
+                                                onClick={() => submitComment(post.id)}
+                                                disabled={!(commentInputs[post.id] || '').trim()}
+                                            >
+                                                Post
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
 
                             {/* Post Date */}
                             <div className="post-date">

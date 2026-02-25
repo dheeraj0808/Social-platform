@@ -13,13 +13,19 @@ const App = () => {
     setPosts((prev) => [newPost, ...prev]);
   };
 
+  const updatePost = (updatedPost) => {
+    setPosts((prev) =>
+      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+    );
+  };
+
   return (
     <BrowserRouter>
       <div className="app-wrapper">
         <Header />
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<Feed posts={posts} />} />
+            <Route path="/" element={<Feed posts={posts} onUpdatePost={updatePost} />} />
             <Route path="/create" element={<CreatePost onPost={addPost} />} />
           </Routes>
         </main>
