@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './CreatePost.css';
 
-const CreatePost = ({ onPost }) => {
+const CreatePost = ({ onPost, fetchPosts }) => {
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState(null);
     const [description, setDescription] = useState('');
@@ -46,26 +47,25 @@ const CreatePost = ({ onPost }) => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!image || !description.trim()) return;
 
-        const newPost = {
-            id: Date.now(),
-            image: preview,
-            description: description.trim(),
-            author: 'Dheeraj Singh',
-            avatar: '👤',
-            timestamp: new Date().toLocaleString(),
-            likes: 0,
-            comments: [],
-        };
+        try {
+            const formData = new FormData();
+            formData.append('image', image);
+            formData.append('caption', description.trim());
 
-        onPost(newPost);
-        setImage(null);
-        setPreview(null);
-        setDescription('');
-        navigate('/');
+            await axios.post("http://localhost:3000/createPost", formData);
+
+            if (fetchPosts) fetchPosts();
+            setImage(null);
+            setPreview(null);
+            setDescription('');
+            navigate('/');
+        } catch (err) {
+            console.log("Error creating post:", err.message);
+        }
     };
 
     return (
