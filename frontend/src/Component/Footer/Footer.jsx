@@ -6,7 +6,7 @@ const Footer = () => {
         <footer className="footer">
             <div className="footer-content">
                 <p className="footer-text">
-                    Made with <span className="heart">❤️</span> by <strong>PostApp</strong>
+                    Made with <span className="heart">❤️</span> by <strong>Dheeraj Singh</strong>
                 </p>
                 <p className="footer-copy">&copy; {new Date().getFullYear()} All rights reserved.</p>
             </div>

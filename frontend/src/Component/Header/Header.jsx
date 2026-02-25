@@ -7,7 +7,7 @@ const Header = () => {
         <header className="header">
             <div className="header-logo">
                 <span className="logo-icon">📸</span>
-                <h1>PostApp</h1>
+                <h1>Social Platform</h1>
             </div>
             <nav className="header-nav">
                 <NavLink
