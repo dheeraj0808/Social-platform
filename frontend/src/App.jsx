@@ -6,9 +6,14 @@ import Footer from './Component/Footer/Footer';
 import Feed from './Pages/Feed';
 import CreatePost from './Pages/CreatePost';
 import Profile from './Pages/Profile';
+import Auth from './Pages/Auth';
 import './App.css';
 
 const App = () => {
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [posts, setPosts] = useState([]);
 
   const fetchPosts = async () => {
@@ -21,8 +26,15 @@ const App = () => {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (user) {
+      fetchPosts();
+    }
+  }, [user]);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
 
   const addPost = (newPost) => {
     setPosts((prev) => [newPost, ...prev]);
@@ -34,6 +46,12 @@ const App = () => {
     );
   };
 
+  // Jab tak login nahi kiya, Auth page dikhao
+  if (!user) {
+    return <Auth onLogin={handleLogin} />;
+  }
+
+  // Login ke baad normal app dikhao
   return (
     <BrowserRouter>
       <div className="app-wrapper">

@@ -80,7 +80,7 @@ const Feed = ({ posts, onUpdatePost }) => {
 
         const updatedPost = {
             ...post,
-            comments: [...post.comments, newComment],
+            comments: [...(post.comments || []), newComment],
         };
 
         onUpdatePost(updatedPost);
@@ -190,201 +190,210 @@ const Feed = ({ posts, onUpdatePost }) => {
                 </div>
             ) : (
                 <div className="posts-container">
-                    {posts.map((post, index) => (
-                        <article
-                            key={post.id}
-                            className="post-card"
-                            style={{ animationDelay: `${index * 0.08}s` }}
-                        >
-                            {/* Post Header */}
-                            <div className="post-top">
-                                <div className="post-author">
-                                    <div className="avatar-ring">
-                                        <div className="avatar-inner">
-                                            {post.avatar}
-                                        </div>
-                                    </div>
-                                    <div className="author-meta">
-                                        <span className="author-name">{post.author}</span>
-                                        <span className="post-time">{getTimeAgo(post.timestamp)}</span>
-                                    </div>
-                                </div>
-                                <button className="post-menu-btn" title="More options">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#8888a8">
-                                        <circle cx="5" cy="12" r="2" />
-                                        <circle cx="12" cy="12" r="2" />
-                                        <circle cx="19" cy="12" r="2" />
-                                    </svg>
-                                </button>
-                            </div>
+                    {posts.map((post, index) => {
+                        const postAuthor = post.author || 'User';
+                        const postAvatar = post.avatar || postAuthor.charAt(0).toUpperCase();
+                        const postDescription = post.description || post.caption || '';
+                        const postTimestamp = post.timestamp || post.created_at;
+                        const postLikes = post.likes || 0;
+                        const postComments = post.comments || [];
 
-                            {/* Post Image */}
-                            <div
-                                className="post-image-wrapper"
-                                onDoubleClick={() => handleDoubleTap(post.id)}
+                        return (
+                            <article
+                                key={post.id}
+                                className="post-card"
+                                style={{ animationDelay: `${index * 0.08}s` }}
                             >
-                                <img src={post.image} alt="Post" className="post-image" loading="lazy" />
-                                <div className="image-overlay" />
-                                {doubleTapId === post.id && (
-                                    <div className="double-tap-heart">
-                                        <svg width="80" height="80" viewBox="0 0 24 24" fill="#ef4444" stroke="none">
-                                            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                                        </svg>
+                                {/* Post Header */}
+                                <div className="post-top">
+                                    <div className="post-author">
+                                        <div className="avatar-ring">
+                                            <div className="avatar-inner">
+                                                {postAvatar}
+                                            </div>
+                                        </div>
+                                        <div className="author-meta">
+                                            <span className="author-name">{postAuthor}</span>
+                                            <span className="post-time">{getTimeAgo(postTimestamp)}</span>
+                                        </div>
                                     </div>
-                                )}
-                            </div>
+                                    <button className="post-menu-btn" title="More options">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#8888a8">
+                                            <circle cx="5" cy="12" r="2" />
+                                            <circle cx="12" cy="12" r="2" />
+                                            <circle cx="19" cy="12" r="2" />
+                                        </svg>
+                                    </button>
+                                </div>
 
-                            {/* Post Actions */}
-                            <div className="post-actions-bar">
-                                <div className="actions-left">
-                                    <button
-                                        className={`act-btn like-btn ${likedPosts[post.id] ? 'liked' : ''}`}
-                                        onClick={() => toggleLike(post.id)}
-                                        title="Like"
-                                    >
-                                        {likedPosts[post.id] ? (
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="none">
+                                {/* Post Image */}
+                                <div
+                                    className="post-image-wrapper"
+                                    onDoubleClick={() => handleDoubleTap(post.id)}
+                                >
+                                    <img src={post.image} alt="Post" className="post-image" loading="lazy" />
+                                    <div className="image-overlay" />
+                                    {doubleTapId === post.id && (
+                                        <div className="double-tap-heart">
+                                            <svg width="80" height="80" viewBox="0 0 24 24" fill="#ef4444" stroke="none">
                                                 <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Post Actions */}
+                                <div className="post-actions-bar">
+                                    <div className="actions-left">
+                                        <button
+                                            className={`act-btn like-btn ${likedPosts[post.id] ? 'liked' : ''}`}
+                                            onClick={() => toggleLike(post.id)}
+                                            title="Like"
+                                        >
+                                            {likedPosts[post.id] ? (
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="none">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                                                </svg>
+                                            ) : (
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8">
+                                                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                        <button
+                                            className={`act-btn comment-btn ${openComments[post.id] ? 'active' : ''}`}
+                                            onClick={() => toggleComments(post.id)}
+                                            title="Comment"
+                                        >
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={openComments[post.id] ? '#a78bfa' : '#c0c0d0'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            className="act-btn share-btn"
+                                            onClick={() => handleShare(post.id)}
+                                            title="Share"
+                                        >
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="22" y1="2" x2="11" y2="13" />
+                                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                            </svg>
+                                            {shareToast === post.id && (
+                                                <span className="share-copied-badge">Copied!</span>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <button
+                                        className={`act-btn save-btn ${savedPosts[post.id] ? 'saved' : ''}`}
+                                        onClick={() => toggleSave(post.id)}
+                                        title="Save"
+                                    >
+                                        {savedPosts[post.id] ? (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="#e0e0f0" stroke="none">
+                                                <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
                                             </svg>
                                         ) : (
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8">
-                                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
                                             </svg>
-                                        )}
-                                    </button>
-                                    <button
-                                        className={`act-btn comment-btn ${openComments[post.id] ? 'active' : ''}`}
-                                        onClick={() => toggleComments(post.id)}
-                                        title="Comment"
-                                    >
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={openComments[post.id] ? '#a78bfa' : '#c0c0d0'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                                        </svg>
-                                    </button>
-                                    <button
-                                        className="act-btn share-btn"
-                                        onClick={() => handleShare(post.id)}
-                                        title="Share"
-                                    >
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                            <line x1="22" y1="2" x2="11" y2="13" />
-                                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                        </svg>
-                                        {shareToast === post.id && (
-                                            <span className="share-copied-badge">Copied!</span>
                                         )}
                                     </button>
                                 </div>
-                                <button
-                                    className={`act-btn save-btn ${savedPosts[post.id] ? 'saved' : ''}`}
-                                    onClick={() => toggleSave(post.id)}
-                                    title="Save"
-                                >
-                                    {savedPosts[post.id] ? (
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="#e0e0f0" stroke="none">
-                                            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-                                        </svg>
-                                    ) : (
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c0c0d0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-                                        </svg>
+
+                                {/* Like Count */}
+                                <div className="likes-count">
+                                    <strong>{postLikes + (likedPosts[post.id] ? 1 : 0)}</strong> likes
+                                </div>
+
+                                {/* Post Description */}
+                                <div className="post-caption">
+                                    <strong className="caption-author">{postAuthor}</strong>
+                                    <span className={`caption-text ${expandedDescs[post.id] ? 'expanded' : ''}`}>
+                                        {postDescription}
+                                    </span>
+                                    {postDescription.length > 80 && !expandedDescs[post.id] && (
+                                        <button
+                                            className="more-btn"
+                                            onClick={() => toggleDesc(post.id)}
+                                        >
+                                            ...more
+                                        </button>
                                     )}
-                                </button>
-                            </div>
+                                </div>
 
-                            {/* Like Count */}
-                            <div className="likes-count">
-                                <strong>{post.likes + (likedPosts[post.id] ? 1 : 0)}</strong> likes
-                            </div>
-
-                            {/* Post Description */}
-                            <div className="post-caption">
-                                <strong className="caption-author">{post.author}</strong>
-                                <span className={`caption-text ${expandedDescs[post.id] ? 'expanded' : ''}`}>
-                                    {post.description}
-                                </span>
-                                {post.description.length > 80 && !expandedDescs[post.id] && (
+                                {/* View All Comments Toggle */}
+                                {postComments.length > 0 && !openComments[post.id] && (
                                     <button
-                                        className="more-btn"
-                                        onClick={() => toggleDesc(post.id)}
+                                        className="view-comments-btn"
+                                        onClick={() => toggleComments(post.id)}
                                     >
-                                        ...more
+                                        View all {postComments.length} comment{postComments.length > 1 ? 's' : ''}
                                     </button>
                                 )}
-                            </div>
 
-                            {/* View All Comments Toggle */}
-                            {post.comments.length > 0 && !openComments[post.id] && (
-                                <button
-                                    className="view-comments-btn"
-                                    onClick={() => toggleComments(post.id)}
-                                >
-                                    View all {post.comments.length} comment{post.comments.length > 1 ? 's' : ''}
-                                </button>
-                            )}
-
-                            {/* Comments Section */}
-                            <div className={`comments-section ${openComments[post.id] ? 'open' : ''}`}>
-                                {openComments[post.id] && (
-                                    <>
-                                        {/* Comments List */}
-                                        {post.comments.length > 0 ? (
-                                            <div className="comments-list">
-                                                {post.comments.map((comment) => (
-                                                    <div key={comment.id} className="comment-item">
-                                                        <div className="comment-avatar">
-                                                            {comment.author === 'You' ? '😊' : '👤'}
+                                {/* Comments Section */}
+                                <div className={`comments-section ${openComments[post.id] ? 'open' : ''}`}>
+                                    {openComments[post.id] && (
+                                        <>
+                                            {/* Comments List */}
+                                            {postComments.length > 0 ? (
+                                                <div className="comments-list">
+                                                    {postComments.map((comment) => (
+                                                        <div key={comment.id} className="comment-item">
+                                                            <div className="comment-avatar">
+                                                                {comment.author === 'You' ? '😊' : '👤'}
+                                                            </div>
+                                                            <div className="comment-body">
+                                                                <strong className="comment-author">{comment.author}</strong>
+                                                                <span className="comment-text">{comment.text}</span>
+                                                                <span className="comment-time">{getTimeAgo(comment.timestamp)}</span>
+                                                            </div>
                                                         </div>
-                                                        <div className="comment-body">
-                                                            <strong className="comment-author">{comment.author}</strong>
-                                                            <span className="comment-text">{comment.text}</span>
-                                                            <span className="comment-time">{getTimeAgo(comment.timestamp)}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="no-comments">
+                                                    <span>No comments yet. Be the first!</span>
+                                                </div>
+                                            )}
+
+                                            {/* Comment Input */}
+                                            <div className="comment-input-wrapper">
+                                                <span className="comment-input-avatar">😊</span>
+                                                <input
+                                                    ref={(el) => (commentInputRefs.current[post.id] = el)}
+                                                    type="text"
+                                                    className="comment-input"
+                                                    placeholder="Add a comment..."
+                                                    value={commentInputs[post.id] || ''}
+                                                    onChange={(e) => handleCommentInput(post.id, e.target.value)}
+                                                    onKeyDown={(e) => handleCommentKeyDown(e, post.id)}
+                                                />
+                                                <button
+                                                    className={`comment-post-btn ${(commentInputs[post.id] || '').trim() ? 'active' : ''}`}
+                                                    onClick={() => submitComment(post.id)}
+                                                    disabled={!(commentInputs[post.id] || '').trim()}
+                                                >
+                                                    Post
+                                                </button>
                                             </div>
-                                        ) : (
-                                            <div className="no-comments">
-                                                <span>No comments yet. Be the first!</span>
-                                            </div>
-                                        )}
+                                        </>
+                                    )}
+                                </div>
 
-                                        {/* Comment Input */}
-                                        <div className="comment-input-wrapper">
-                                            <span className="comment-input-avatar">😊</span>
-                                            <input
-                                                ref={(el) => (commentInputRefs.current[post.id] = el)}
-                                                type="text"
-                                                className="comment-input"
-                                                placeholder="Add a comment..."
-                                                value={commentInputs[post.id] || ''}
-                                                onChange={(e) => handleCommentInput(post.id, e.target.value)}
-                                                onKeyDown={(e) => handleCommentKeyDown(e, post.id)}
-                                            />
-                                            <button
-                                                className={`comment-post-btn ${(commentInputs[post.id] || '').trim() ? 'active' : ''}`}
-                                                onClick={() => submitComment(post.id)}
-                                                disabled={!(commentInputs[post.id] || '').trim()}
-                                            >
-                                                Post
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+                                {/* Post Date */}
+                                <div className="post-date">
+                                    {new Date(postTimestamp).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                    })} · {getTimeAgo(postTimestamp)}
+                                </div>
 
-                            {/* Post Date */}
-                            <div className="post-date">
-                                {new Date(post.timestamp).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                })} · {getTimeAgo(post.timestamp)}
-                            </div>
-
-                            {/* Divider glow */}
-                            <div className="card-bottom-glow" />
-                        </article>
-                    ))}
+                                {/* Divider glow */}
+                                <div className="card-bottom-glow" />
+                            </article>
+                        );
+                    })}
                 </div>
             )}
         </div>

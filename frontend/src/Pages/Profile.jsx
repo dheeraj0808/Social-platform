@@ -2,9 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
-const Profile = ({ posts }) => {
+const Profile = ({ posts, user }) => {
     const navigate = useNavigate();
-    const userPosts = posts.filter((p) => p.author === 'Dheeraj Singh');
+    const displayName = user?.fullName || 'User';
+    const handle = user?.username ? `@${user.username}` : user?.email || '';
+    const avatarLetter = displayName.charAt(0).toUpperCase();
+    const userPosts = posts;
 
     return (
         <div className="profile-page">
@@ -16,10 +19,10 @@ const Profile = ({ posts }) => {
                 </div>
                 <div className="profile-main">
                     <div className="profile-pic-ring">
-                        <div className="profile-pic">D</div>
+                        <div className="profile-pic">{avatarLetter}</div>
                     </div>
-                    <h2 className="profile-name">Dheeraj Singh</h2>
-                    <p className="profile-handle">@dheeraj0808</p>
+                    <h2 className="profile-name">{displayName}</h2>
+                    <p className="profile-handle">{handle}</p>
                     <p className="profile-bio">Developer · Creator · Building cool stuff 🚀</p>
 
                     <div className="profile-stats">
@@ -99,13 +102,13 @@ const Profile = ({ posts }) => {
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
                                             <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
                                         </svg>
-                                        <span>{post.likes}</span>
+                                        <span>{post.likes || 0}</span>
                                     </div>
                                     <div className="grid-stat">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" stroke="none">
                                             <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
                                         </svg>
-                                        <span>{post.comments.length}</span>
+                                        <span>{(post.comments || []).length}</span>
                                     </div>
                                 </div>
                             </div>
