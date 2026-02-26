@@ -1,19 +1,111 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* ═══════════════════════════════════════════════════
+   GLOBAL DESIGN SYSTEM — Social Platform
+   Premium dark mode · Glassmorphism · Purple accents
+   ═══════════════════════════════════════════════════ */
 
-* {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  /* ── Core Palette ──────────────────────────────── */
+  --bg-primary: #06060e;
+  --bg-secondary: #0c0c1a;
+  --bg-card: rgba(14, 14, 28, 0.7);
+  --bg-card-hover: rgba(18, 18, 36, 0.8);
+  --bg-glass: rgba(16, 16, 32, 0.6);
+  --bg-elevated: rgba(20, 20, 40, 0.9);
+
+  /* ── Borders ───────────────────────────────────── */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-accent: rgba(139, 92, 246, 0.25);
+  --border-glow: rgba(139, 92, 246, 0.4);
+
+  /* ── Text ──────────────────────────────────────── */
+  --text-primary: #f0f0f8;
+  --text-secondary: #a0a0bc;
+  --text-tertiary: #5c5c7a;
+  --text-muted: #3a3a54;
+
+  /* ── Accent Colors ─────────────────────────────── */
+  --accent-purple: #8b5cf6;
+  --accent-violet: #a78bfa;
+  --accent-lavender: #c4b5fd;
+  --accent-indigo: #6366f1;
+  --accent-pink: #ec4899;
+  --accent-red: #ef4444;
+  --accent-green: #10b981;
+  --accent-blue: #3b82f6;
+
+  /* ── Gradients ─────────────────────────────────── */
+  --gradient-primary: linear-gradient(135deg, #8b5cf6, #6366f1);
+  --gradient-accent: linear-gradient(135deg, #a78bfa, #7c3aed);
+  --gradient-warm: linear-gradient(135deg, #ec4899, #8b5cf6);
+  --gradient-cool: linear-gradient(135deg, #6366f1, #06b6d4);
+  --gradient-text: linear-gradient(135deg, #c4b5fd 0%, #8b5cf6 50%, #6366f1 100%);
+
+  /* ── Effects ───────────────────────────────────── */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.1);
+  --shadow-glow-strong: 0 0 60px rgba(139, 92, 246, 0.15);
+
+  --blur: blur(20px);
+  --blur-heavy: blur(40px);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ───────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Base Reset ──────────────────────────────────── */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  font-family: 'Inter', sans-serif;
-  background: #0d0d17;
-  color: #e0e0f0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
+/* ── Background Mesh Gradient ────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(139, 92, 246, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 60% at 50% 80%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── App Wrapper ─────────────────────────────────── */
 .app-wrapper {
   display: flex;
   flex-direction: column;
@@ -22,19 +114,76 @@ body {
 
 .main-content {
   flex: 1;
-  padding: 2rem 1rem;
-  max-width: 1280px;
+  padding: 1.5rem 1rem;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
 }
 
 @media (min-width: 768px) {
   .main-content {
-    padding: 2rem;
+    padding: 2rem 2rem;
   }
 }
 
-/* ── Toast System ───────────────────────────────── */
+/* ── Links ───────────────────────────────────────── */
+a {
+  color: var(--accent-violet);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--accent-lavender);
+}
+
+/* ── Focus Styles ────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+/* ── Skeleton Loader ─────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Toast System ────────────────────────────────── */
 .toast-container {
   position: fixed;
   bottom: 2rem;
@@ -43,8 +192,7 @@ body {
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 0.6rem;
   pointer-events: none;
 }
 
@@ -53,37 +201,33 @@ body {
   align-items: center;
   gap: 0.6rem;
   padding: 0.75rem 1.25rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
   font-weight: 500;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  animation: toastSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
-  max-width: 90vw;
-}
-
-.toast-item.toast-exit {
-  animation: toastSlideDown 0.3s ease-in forwards;
+  animation: toastIn 0.4s var(--ease-spring);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid;
 }
 
 .toast-item.success {
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
   color: #6ee7b7;
 }
 
 .toast-item.error {
-  background: rgba(239, 68, 68, 0.18);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
   color: #fca5a5;
 }
 
 .toast-item.info {
-  background: rgba(167, 139, 250, 0.18);
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: var(--accent-lavender);
 }
 
 .toast-icon {
@@ -91,73 +235,38 @@ body {
   flex-shrink: 0;
 }
 
-@keyframes toastSlideUp {
+.toast-item.toast-exit {
+  animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastIn {
   from {
+    transform: translateY(20px) scale(0.95);
     opacity: 0;
-    transform: translateY(1rem);
   }
 
   to {
+    transform: translateY(0) scale(1);
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
-@keyframes toastSlideDown {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
+@keyframes toastOut {
   to {
+    transform: translateY(10px) scale(0.95);
     opacity: 0;
-    transform: translateY(1rem);
   }
 }
 
-/* ── Skeleton Shimmer ───────────────────────────── */
-@keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-
-  100% {
-    background-position: 400px 0;
-  }
+/* ── Selection ───────────────────────────────────── */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
 }
 
-.skeleton {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 75%);
-  background-size: 800px 100%;
-  animation: shimmer 1.5s infinite linear;
-  border-radius: 8px;
-}
-
-/* ── Scrollbar ───────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(167, 139, 250, 0.25);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(167, 139, 250, 0.4);
-}
-
-/* ── Focus visible for accessibility ─────────────── */
-:focus-visible {
-  outline: 2px solid #a78bfa;
-  outline-offset: 2px;
-}
-
-button:focus:not(:focus-visible),
-a:focus:not(:focus-visible) {
-  outline: none;
+/* ── Utility: menu overlay ───────────────────────── */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
 }
