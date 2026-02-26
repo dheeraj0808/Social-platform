@@ -9,8 +9,12 @@ const initPostTables = async () => {
         user_id INT,
         caption VARCHAR(500),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+      ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+        try {
+            await query(`ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+        } catch (e) { /* already converted */ }
 
         // ── Migrate: add user_id column if missing (old schema) ─────
         try {

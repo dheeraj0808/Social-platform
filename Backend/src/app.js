@@ -1,55 +1,80 @@
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
-const uploadImage = require("./Services/Storage.services");
-const db = require("./Models/Post.model");
+
+// Route imports
+const authRoutes = require("./routes/auth.routes");
+const postRoutes = require("./routes/post.routes");
+const userRoutes = require("./routes/user.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
 const app = express();
 
-
+/* ── Global Middleware ────────────────────────────── */
 app.use(cors());
 app.use(express.json());
 
-const upload = multer({ storage: multer.memoryStorage() })
-
-app.post("/createPost", upload.single("image"), async (req, res) => {
-    console.log(req.body);
-    console.log(req.file);
-
-    try {
-        const result = await uploadImage(req.file.buffer);
-        console.log(result);
-
-        db.query("INSERT INTO posts (image, caption) VALUES (?, ?)", [result.url, req.body.caption], (err, post) => {
-            if (err) {
-                return res.status(500).json({ message: "Error creating post", error: err.message })
-            }
-
-            return res.status(201).json({
-                message: "Post created successfully",
-                post
-            })
-        })
-    } catch (error) {
-        console.log("Upload error:", error.message);
-        return res.status(500).json({ message: "Error uploading image", error: error.message });
-    }
-
+/* ── Request Logger (dev) ────────────────────────── */
+app.use((req, res, next) => {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`[${timestamp}] ${req.method} ${req.originalUrl}`);
+    next();
 });
 
-app.get("/getPosts", async (req, res) => {
+/* ── Health Check ────────────────────────────────── */
+app.get("/", (req, res) => {
+    res.json({
+        success: true,
+        message: "Social Platform API v2",
+        endpoints: {
+            auth: ["POST /auth/register", "POST /auth/login"],
+            posts: [
+                "POST /createPost",
+                "GET /getPosts",
+                "DELETE /posts/:id",
+                "POST /posts/:id/like",
+                "GET /posts/:id/comments",
+                "POST /posts/:id/comments",
+                "DELETE /comments/:id",
+                "POST /posts/:id/save",
+            ],
+            users: [
+                "GET /users/:id",
+                "PUT /users/:id",
+                "POST /users/:id/follow",
+                "GET /users/:id/followers",
+                "GET /users/:id/following",
+                "GET /users/:id/saved",
+            ],
+            notifications: [
+                "GET /notifications/:userId",
+                "PUT /notifications/:userId/read-all",
+            ],
+        },
+    });
+});
 
-    db.query("SELECT * FROM posts", (err, posts) => {
-        if (err) {
-            return res.status(500).json({ message: "Error fetching posts", error: err.message })
-        }
+/* ── Routes ──────────────────────────────────────── */
+app.use("/auth", authRoutes);
+app.use("/", postRoutes);
+app.use("/", userRoutes);
+app.use("/", notificationRoutes);
 
-        return res.status(200).json({
-            message: "Posts fetched successfully",
-            posts
-        })
-    })
+/* ── 404 Handler ─────────────────────────────────── */
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Route ${req.method} ${req.originalUrl} not found`,
+    });
+});
 
-})
+/* ── Global Error Handler ────────────────────────── */
+app.use((err, req, res, next) => {
+    console.error("Unhandled error:", err);
+    res.status(500).json({
+        success: false,
+        message: "Internal server error",
+        error: err.message,
+    });
+});
 
 module.exports = app;
