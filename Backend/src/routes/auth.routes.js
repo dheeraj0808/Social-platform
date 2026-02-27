@@ -11,14 +11,33 @@ router.post("/register", async (req, res) => {
     try {
         const { fullName, username, email } = req.body;
 
-        if (!fullName || !username || !email) {
+        // Validate required fields
+        if (!fullName?.trim() || !username?.trim() || !email?.trim()) {
             return sendError(res, "fullName, username, and email are required", 400);
+        }
+
+        const cleanName = fullName.trim();
+        const cleanUser = username.trim().toLowerCase();
+        const cleanEmail = email.trim().toLowerCase();
+
+        // Basic email format check
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            return sendError(res, "Please enter a valid email address", 400);
+        }
+
+        // Username format check (alphanumeric + underscores, 3-30 chars)
+        if (!/^[a-z0-9_]{3,30}$/.test(cleanUser)) {
+            return sendError(
+                res,
+                "Username must be 3-30 characters (lowercase letters, numbers, underscores only)",
+                400
+            );
         }
 
         // Check if user already exists by email or username
         const existing = await query(
             `SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1`,
-            [email, username]
+            [cleanEmail, cleanUser]
         );
 
         if (existing.length > 0) {
@@ -29,16 +48,19 @@ router.post("/register", async (req, res) => {
         // Create new user
         const result = await query(
             `INSERT INTO users (full_name, username, email) VALUES (?, ?, ?)`,
-            [fullName, username, email]
+            [cleanName, cleanUser, cleanEmail]
         );
 
         const newUser = await query(`SELECT * FROM users WHERE id = ?`, [
             result.insertId,
         ]);
 
-        return sendSuccess(res, "User registered successfully", {
-            user: newUser[0],
-        }, 201);
+        return sendSuccess(
+            res,
+            "User registered successfully",
+            { user: newUser[0] },
+            201
+        );
     } catch (err) {
         console.log("Auth register error:", err.message);
         return sendError(res, "Registration failed", 500, err.message);
@@ -54,16 +76,18 @@ router.post("/login", async (req, res) => {
     try {
         const { email } = req.body;
 
-        if (!email) {
+        if (!email?.trim()) {
             return sendError(res, "Email is required", 400);
         }
 
+        const cleanEmail = email.trim().toLowerCase();
+
         const users = await query(`SELECT * FROM users WHERE email = ? LIMIT 1`, [
-            email,
+            cleanEmail,
         ]);
 
         if (users.length === 0) {
-            return sendError(res, "User not found", 404);
+            return sendError(res, "No account found with this email", 404);
         }
 
         return sendSuccess(res, "Login successful", { user: users[0] });

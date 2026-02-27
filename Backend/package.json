@@ -1,14 +1,19 @@
 {
-  "name": "practice",
+  "name": "social-platform-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "REST API for Social Platform — Express + MySQL",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "social-media",
+    "express",
+    "mysql",
+    "rest-api"
+  ],
+  "author": "Dheeraj Singh",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
