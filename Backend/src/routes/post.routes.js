@@ -4,7 +4,10 @@ const multer = require("multer");
 const uploadImage = require("../Services/Storage.services");
 const { query, sendSuccess, sendError } = require("../db/db");
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
+});
 
 /* ═══════════════════════════════════════════════════
    MIDDLEWARE — extract userId from header
@@ -51,7 +54,7 @@ router.post(
             // Upload all images to ImageKit
             const uploadResults = [];
             for (const file of files) {
-                const result = await uploadImage(file.buffer);
+                const result = await uploadImage(file.buffer, file.originalname);
                 uploadResults.push(result);
             }
 

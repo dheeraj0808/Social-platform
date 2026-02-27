@@ -10,8 +10,15 @@ const notificationRoutes = require("./routes/notification.routes");
 const app = express();
 
 /* ── Global Middleware ────────────────────────────── */
-app.use(cors());
-app.use(express.json());
+app.use(
+    cors({
+        origin: process.env.CORS_ORIGIN || "*",
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type", "x-user-id"],
+    })
+);
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 /* ── Request Logger (dev) ────────────────────────── */
 app.use((req, res, next) => {
@@ -25,6 +32,8 @@ app.get("/", (req, res) => {
     res.json({
         success: true,
         message: "Social Platform API v2",
+        version: "2.0.0",
+        uptime: `${Math.floor(process.uptime())}s`,
         endpoints: {
             auth: ["POST /auth/register", "POST /auth/login"],
             posts: [
@@ -70,10 +79,9 @@ app.use((req, res) => {
 /* ── Global Error Handler ────────────────────────── */
 app.use((err, req, res, next) => {
     console.error("Unhandled error:", err);
-    res.status(500).json({
+    res.status(err.status || 500).json({
         success: false,
-        message: "Internal server error",
-        error: err.message,
+        message: err.message || "Internal server error",
     });
 });
 
