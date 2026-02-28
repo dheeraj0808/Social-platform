@@ -33,6 +33,172 @@ const STORY_IMAGES = [
     'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
 ];
 
+/* STORY EXPIRY: 24 hours */
+const STORY_EXPIRY_MS = 24 * 60 * 60 * 1000;
+
+/* ═══════════════════════════════════════════════════
+   STORY UPLOAD MODAL
+   ═══════════════════════════════════════════════════ */
+const StoryUploadModal = ({ onClose, onUpload, user }) => {
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [storyText, setStoryText] = useState('');
+    const [textPosition, setTextPosition] = useState('center'); // top, center, bottom
+    const [uploading, setUploading] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleFileSelect = (file) => {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) return;
+        if (file.size > 10 * 1024 * 1024) return; // 10MB max
+        setImage(file);
+        const reader = new FileReader();
+        reader.onloadend = () => setImagePreview(reader.result);
+        reader.readAsDataURL(file);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragActive(false);
+        const file = e.dataTransfer.files[0];
+        handleFileSelect(file);
+    };
+
+    const handleSubmit = async () => {
+        if (!imagePreview) return;
+        setUploading(true);
+        // Simulate a small delay for UX
+        await new Promise((r) => setTimeout(r, 600));
+        const story = {
+            id: `user-story-${Date.now()}`,
+            image: imagePreview,
+            text: storyText.trim() || '',
+            textPosition,
+            timestamp: new Date().toISOString(),
+            userName: user?.fullName || user?.username || 'You',
+            userAvatar: user?.avatar || 'U',
+        };
+        onUpload(story);
+        setUploading(false);
+        onClose();
+    };
+
+    useEffect(() => {
+        const handleKey = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    return (
+        <div className="story-upload-overlay" onClick={onClose} role="dialog" aria-label="Upload story">
+            <div className="story-upload-modal" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="story-upload-header">
+                    <h3>Create Story</h3>
+                    <button className="story-close-btn" onClick={onClose} aria-label="Close">✕</button>
+                </div>
+
+                <div className="story-upload-body">
+                    {/* Left: Upload / Preview */}
+                    <div className="story-upload-preview-area">
+                        {!imagePreview ? (
+                            <div
+                                className={`story-dropzone ${dragActive ? 'drag-active' : ''}`}
+                                onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                                onDragLeave={() => setDragActive(false)}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={(e) => handleFileSelect(e.target.files[0])}
+                                />
+                                <div className="dropzone-icon">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" />
+                                        <polyline points="21 15 16 10 5 21" />
+                                    </svg>
+                                </div>
+                                <p className="dropzone-title">Upload a photo</p>
+                                <p className="dropzone-sub">Drag & drop or click to browse</p>
+                                <span className="dropzone-hint">Max 10MB · JPG, PNG, WebP</span>
+                            </div>
+                        ) : (
+                            <div className="story-preview-container">
+                                <img src={imagePreview} alt="Story preview" className="story-preview-img" />
+                                {storyText && (
+                                    <div className={`story-text-overlay story-text-${textPosition}`}>
+                                        <span>{storyText}</span>
+                                    </div>
+                                )}
+                                <button className="story-change-img-btn" onClick={() => { setImage(null); setImagePreview(null); }}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                        <polyline points="1 4 1 10 7 10" />
+                                        <path d="M3.51 15a9 9 0 105.64-11.36L1 10" />
+                                    </svg>
+                                    Change
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Right: Controls */}
+                    {imagePreview && (
+                        <div className="story-upload-controls">
+                            <div className="story-control-group">
+                                <label className="story-control-label">Add Text (optional)</label>
+                                <input
+                                    type="text"
+                                    className="story-text-input"
+                                    placeholder="What's on your mind?"
+                                    value={storyText}
+                                    onChange={(e) => setStoryText(e.target.value)}
+                                    maxLength={120}
+                                />
+                                <span className="story-char-count">{storyText.length}/120</span>
+                            </div>
+
+                            <div className="story-control-group">
+                                <label className="story-control-label">Text Position</label>
+                                <div className="story-position-btns">
+                                    {['top', 'center', 'bottom'].map((pos) => (
+                                        <button
+                                            key={pos}
+                                            className={`pos-btn ${textPosition === pos ? 'active' : ''}`}
+                                            onClick={() => setTextPosition(pos)}
+                                        >
+                                            {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button
+                                className={`story-share-btn ${uploading ? 'uploading' : ''}`}
+                                onClick={handleSubmit}
+                                disabled={uploading}
+                            >
+                                {uploading ? (
+                                    <><span className="story-spinner" /> Sharing...</>
+                                ) : (
+                                    <>Share Story</>
+                                )}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 /* ═══════════════════════════════════════════════════
    STORY VIEWER MODAL
    ═══════════════════════════════════════════════════ */
@@ -40,7 +206,7 @@ const StoryViewer = ({ stories, startIndex, onClose }) => {
     const [current, setCurrent] = useState(startIndex);
     const [progress, setProgress] = useState(0);
     const timerRef = useRef(null);
-    const DURATION = 4000;
+    const DURATION = 5000;
 
     const story = stories[current];
 
@@ -79,6 +245,9 @@ const StoryViewer = ({ stories, startIndex, onClose }) => {
         return () => window.removeEventListener('keydown', handleKey);
     }, [current]);
 
+    /* Determine if this is a user-uploaded story (has .image) or a mock story */
+    const isUserStory = !!story.image;
+
     return (
         <div className="story-viewer-overlay" onClick={onClose} role="dialog" aria-label="Story viewer">
             <div className="story-viewer" onClick={(e) => e.stopPropagation()}>
@@ -97,19 +266,35 @@ const StoryViewer = ({ stories, startIndex, onClose }) => {
                 {/* header */}
                 <div className="story-viewer-header">
                     <div className="story-viewer-user">
-                        <div className="story-user-avatar" style={{ background: story.gradient }}>{story.avatar}</div>
-                        <span>{story.name}</span>
+                        <div className="story-user-avatar" style={{ background: story.gradient || 'var(--gradient-primary)' }}>
+                            {story.avatar || story.userAvatar || 'U'}
+                        </div>
+                        <span>{story.name || story.userName || 'You'}</span>
+                        {story.timestamp && (
+                            <span className="story-time-ago">{getTimeAgo(story.timestamp)}</span>
+                        )}
                     </div>
                     <button className="story-close-btn" onClick={onClose} aria-label="Close story">✕</button>
                 </div>
 
                 {/* content */}
-                <div className="story-content" style={{ background: STORY_IMAGES[current % STORY_IMAGES.length] }}>
-                    <div className="story-placeholder-text">
-                        <span>📸</span>
-                        <p>{story.name}'s story</p>
+                {isUserStory ? (
+                    <div className="story-content story-content-image">
+                        <img src={story.image} alt="Story" className="story-full-image" />
+                        {story.text && (
+                            <div className={`story-text-overlay story-text-${story.textPosition || 'center'}`}>
+                                <span>{story.text}</span>
+                            </div>
+                        )}
                     </div>
-                </div>
+                ) : (
+                    <div className="story-content" style={{ background: STORY_IMAGES[current % STORY_IMAGES.length] }}>
+                        <div className="story-placeholder-text">
+                            <span>📸</span>
+                            <p>{story.name}'s story</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* tap zones */}
                 <button className="story-tap story-tap-left" onClick={goPrev} aria-label="Previous story" />
@@ -282,6 +467,36 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
     /* stories */
     const [storyViewerOpen, setStoryViewerOpen] = useState(false);
     const [storyStartIdx, setStoryStartIdx] = useState(0);
+    const [storyUploadOpen, setStoryUploadOpen] = useState(false);
+    const [userStories, setUserStories] = useState(() => {
+        try {
+            const saved = localStorage.getItem('userStories');
+            if (!saved) return [];
+            const stories = JSON.parse(saved);
+            // Filter out expired stories (> 24h)
+            return stories.filter((s) => (Date.now() - new Date(s.timestamp).getTime()) < STORY_EXPIRY_MS);
+        } catch {
+            return [];
+        }
+    });
+
+    /* Persist user stories to localStorage */
+    useEffect(() => {
+        localStorage.setItem('userStories', JSON.stringify(userStories));
+    }, [userStories]);
+
+    /* Computed: all stories (user first, then mock) */
+    const allStories = useMemo(() => [...userStories, ...MOCK_STORIES], [userStories]);
+
+    const handleStoryUpload = (story) => {
+        setUserStories((prev) => [story, ...prev]);
+        showToast('Story shared! 🎉', 'success');
+    };
+
+    const handleDeleteUserStory = (storyId) => {
+        setUserStories((prev) => prev.filter((s) => s.id !== storyId));
+        showToast('Story deleted', 'info');
+    };
 
     /* sidebar */
     const [followedUsers, setFollowedUsers] = useState(() => {
@@ -387,6 +602,15 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
         setStoryViewerOpen(true);
     };
 
+    const handleYourStoryClick = () => {
+        if (userStories.length > 0) {
+            // View user's own stories
+            openStory(0);
+        } else {
+            setStoryUploadOpen(true);
+        }
+    };
+
     /* ═══════════════════════════════════════════════ */
     return (
         <div className="feed-layout">
@@ -396,17 +620,36 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                 {/* ── Stories Row ─────────────────────────── */}
                 <div className="stories-row" role="region" aria-label="Stories">
                     <div className="stories-scroll">
-                        {/* Your story */}
-                        <button className="story-tile your-story" onClick={() => showToast('Story upload coming soon!', 'info')}>
-                            <div className="story-ring your-story-ring">
-                                <div className="story-avatar-inner">{user?.avatar || 'U'}</div>
-                                <div className="your-story-plus">+</div>
+                        {/* Your story — tap to upload or view */}
+                        <button className="story-tile your-story" onClick={handleYourStoryClick}>
+                            <div className={`story-ring ${userStories.length > 0 ? '' : 'your-story-ring'}`}
+                                style={userStories.length > 0 ? { background: 'conic-gradient(from 0deg, #8b5cf6, #ec4899, #8b5cf6)' } : {}}>
+                                {userStories.length > 0 && userStories[0].image ? (
+                                    <img src={userStories[0].image} alt="Your story" className="story-avatar-img" />
+                                ) : (
+                                    <div className="story-avatar-inner">{user?.avatar || 'U'}</div>
+                                )}
+                                {userStories.length === 0 && <div className="your-story-plus">+</div>}
                             </div>
-                            <span className="story-name">Your Story</span>
+                            <span className="story-name">{userStories.length > 0 ? 'Your Story' : 'Add Story'}</span>
                         </button>
+                        {/* Add new story button (shown when user already has stories) */}
+                        {userStories.length > 0 && (
+                            <button className="story-tile add-story-tile" onClick={() => setStoryUploadOpen(true)}>
+                                <div className="story-ring your-story-ring">
+                                    <div className="story-avatar-inner story-add-icon">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round">
+                                            <line x1="12" y1="5" x2="12" y2="19" />
+                                            <line x1="5" y1="12" x2="19" y2="12" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <span className="story-name">New</span>
+                            </button>
+                        )}
                         {/* Other stories */}
                         {MOCK_STORIES.map((s, i) => (
-                            <button key={s.id} className="story-tile" onClick={() => openStory(i)}>
+                            <button key={s.id} className="story-tile" onClick={() => openStory(userStories.length + i)}>
                                 <div className="story-ring" style={{ background: s.gradient }}>
                                     <div className="story-avatar-inner">{s.avatar}</div>
                                 </div>
@@ -696,9 +939,18 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                 </div>
             )}
 
+            {/* ── Story Upload Modal ────────────────────── */}
+            {storyUploadOpen && (
+                <StoryUploadModal
+                    onClose={() => setStoryUploadOpen(false)}
+                    onUpload={handleStoryUpload}
+                    user={user}
+                />
+            )}
+
             {/* ── Story Viewer Modal ────────────────────── */}
             {storyViewerOpen && (
-                <StoryViewer stories={MOCK_STORIES} startIndex={storyStartIdx} onClose={() => setStoryViewerOpen(false)} />
+                <StoryViewer stories={allStories} startIndex={storyStartIdx} onClose={() => setStoryViewerOpen(false)} />
             )}
         </div>
     );

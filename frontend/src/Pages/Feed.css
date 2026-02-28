@@ -122,6 +122,417 @@
 }
 
 /* ═══════════════════════════════════════════════════
+   STORY AVATAR IMAGE (for uploaded stories thumbnail)
+   ═══════════════════════════════════════════════════ */
+.story-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    border: 3px solid var(--bg-primary);
+}
+
+.story-add-icon {
+    background: rgba(139, 92, 246, 0.08) !important;
+    border: 2px dashed rgba(139, 92, 246, 0.25) !important;
+}
+
+.add-story-tile .story-ring {
+    opacity: 0.75;
+    transition: opacity 0.2s;
+}
+
+.add-story-tile:hover .story-ring {
+    opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════
+   STORY UPLOAD MODAL
+   ═══════════════════════════════════════════════════ */
+.story-upload-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.story-upload-modal {
+    width: 680px;
+    max-width: 94vw;
+    max-height: 90vh;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 60px rgba(139, 92, 246, 0.08);
+    animation: modalIn 0.35s var(--ease-out);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.story-upload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.story-upload-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.story-upload-body {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ── Dropzone ──────────────────────────────────── */
+.story-upload-preview-area {
+    flex: 1;
+    min-height: 360px;
+    display: flex;
+}
+
+.story-dropzone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border: 2px dashed var(--border-default);
+    border-radius: var(--radius-lg);
+    background: rgba(139, 92, 246, 0.03);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    padding: 2rem;
+}
+
+.story-dropzone:hover,
+.story-dropzone.drag-active {
+    border-color: var(--accent-purple);
+    background: rgba(139, 92, 246, 0.06);
+}
+
+.story-dropzone.drag-active {
+    transform: scale(1.01);
+    box-shadow: inset 0 0 40px rgba(139, 92, 246, 0.08);
+}
+
+.dropzone-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-full);
+    background: rgba(139, 92, 246, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    transition: transform 0.3s var(--ease-spring);
+}
+
+.story-dropzone:hover .dropzone-icon {
+    transform: scale(1.08);
+}
+
+.dropzone-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.dropzone-sub {
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+}
+
+.dropzone-hint {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* ── Preview ───────────────────────────────────── */
+.story-preview-container {
+    flex: 1;
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #07071a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 360px;
+    max-height: 480px;
+}
+
+.story-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.story-change-img-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-full);
+    border: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.15s;
+    z-index: 5;
+}
+
+.story-change-img-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* ── Text Overlay (preview + viewer) ─────────── */
+.story-text-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0.8rem 1.2rem;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.story-text-overlay span {
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    max-width: 90%;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    line-height: 1.4;
+}
+
+.story-text-top {
+    top: 15%;
+}
+
+.story-text-center {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.story-text-bottom {
+    bottom: 15%;
+}
+
+/* ── Upload Controls ───────────────────────────── */
+.story-upload-controls {
+    width: 220px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.story-control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.story-control-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.story-text-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.story-text-input:focus {
+    border-color: var(--accent-purple);
+}
+
+.story-text-input::placeholder {
+    color: var(--text-muted);
+}
+
+.story-char-count {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+.story-position-btns {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.pos-btn {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-default);
+    background: transparent;
+    color: var(--text-tertiary);
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+}
+
+.pos-btn:hover {
+    border-color: var(--border-accent);
+    color: var(--accent-violet);
+}
+
+.pos-btn.active {
+    background: rgba(139, 92, 246, 0.12);
+    border-color: var(--accent-purple);
+    color: var(--accent-violet);
+}
+
+.story-share-btn {
+    width: 100%;
+    padding: 0.7rem 1.2rem;
+    border-radius: var(--radius-full);
+    border: none;
+    background: var(--gradient-primary);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s var(--ease-out);
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.story-share-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+}
+
+.story-share-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.story-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spinStory 0.6s linear infinite;
+}
+
+@keyframes spinStory {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Time ago badge in viewer header ─────────── */
+.story-time-ago {
+    font-size: 0.65rem !important;
+    color: rgba(255, 255, 255, 0.4) !important;
+    font-weight: 400 !important;
+}
+
+/* ── Full image in story viewer ──────────────── */
+.story-content-image {
+    position: relative;
+    background: #07071a;
+}
+
+.story-full-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── RESPONSIVE: Story Upload ──────────────────── */
+@media (max-width: 640px) {
+    .story-upload-body {
+        flex-direction: column;
+    }
+
+    .story-upload-controls {
+        width: 100%;
+    }
+
+    .story-upload-modal {
+        max-height: 95vh;
+    }
+
+    .story-preview-container {
+        min-height: 280px;
+        max-height: 340px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════
    STORY VIEWER MODAL
    ═══════════════════════════════════════════════════ */
 .story-viewer-overlay {
