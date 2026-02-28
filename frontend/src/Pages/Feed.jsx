@@ -6,23 +6,32 @@ import './Feed.css';
    MOCK DATA
    ═══════════════════════════════════════════════════ */
 const MOCK_STORIES = [
-    { id: 's1', name: 'alex_dev', avatar: 'A', gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
-    { id: 's2', name: 'sarah_w', avatar: 'S', gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)' },
-    { id: 's3', name: 'mike_r', avatar: 'M', gradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)' },
-    { id: 's4', name: 'emma_k', avatar: 'E', gradient: 'linear-gradient(135deg, #10b981, #059669)' },
-    { id: 's5', name: 'james_p', avatar: 'J', gradient: 'linear-gradient(135deg, #f97316, #facc15)' },
-    { id: 's6', name: 'olivia', avatar: 'O', gradient: 'linear-gradient(135deg, #e879f9, #7c3aed)' },
-    { id: 's7', name: 'noah_t', avatar: 'N', gradient: 'linear-gradient(135deg, #14b8a6, #06b6d4)' },
+    { id: 's1', name: 'alex_dev', avatar: 'A', gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)', ringGradient: 'conic-gradient(from 0deg, #f59e0b, #ef4444, #f59e0b)' },
+    { id: 's2', name: 'sarah_w', avatar: 'S', gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)', ringGradient: 'conic-gradient(from 0deg, #ec4899, #8b5cf6, #ec4899)' },
+    { id: 's3', name: 'mike_r', avatar: 'M', gradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)', ringGradient: 'conic-gradient(from 0deg, #06b6d4, #3b82f6, #06b6d4)' },
+    { id: 's4', name: 'emma_k', avatar: 'E', gradient: 'linear-gradient(135deg, #10b981, #059669)', ringGradient: 'conic-gradient(from 0deg, #10b981, #059669, #10b981)' },
+    { id: 's5', name: 'james_p', avatar: 'J', gradient: 'linear-gradient(135deg, #f97316, #facc15)', ringGradient: 'conic-gradient(from 0deg, #f97316, #facc15, #f97316)' },
+    { id: 's6', name: 'olivia', avatar: 'O', gradient: 'linear-gradient(135deg, #e879f9, #7c3aed)', ringGradient: 'conic-gradient(from 0deg, #e879f9, #7c3aed, #e879f9)' },
+    { id: 's7', name: 'noah_t', avatar: 'N', gradient: 'linear-gradient(135deg, #14b8a6, #06b6d4)', ringGradient: 'conic-gradient(from 0deg, #14b8a6, #06b6d4, #14b8a6)' },
 ];
 
 const SUGGESTED_USERS = [
-    { id: 'u1', name: 'Sarah Wilson', username: 'sarah_w', avatar: 'S', bio: 'Photographer 📸' },
-    { id: 'u2', name: 'Alex Chen', username: 'alex_dev', avatar: 'A', bio: 'Full-stack dev 💻' },
-    { id: 'u3', name: 'Emma Kim', username: 'emma_k', avatar: 'E', bio: 'Designer ✨' },
-    { id: 'u4', name: 'Noah Taylor', username: 'noah_t', avatar: 'N', bio: 'Traveler 🌍' },
+    { id: 'u1', name: 'Sarah Wilson', username: 'sarah_w', avatar: 'S', bio: 'Photographer 📸', mutualCount: 3, gradient: 'linear-gradient(135deg, #ec4899, #8b5cf6)' },
+    { id: 'u2', name: 'Alex Chen', username: 'alex_dev', avatar: 'A', bio: 'Full-stack dev 💻', mutualCount: 5, gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
+    { id: 'u3', name: 'Emma Kim', username: 'emma_k', avatar: 'E', bio: 'Designer ✨', mutualCount: 2, gradient: 'linear-gradient(135deg, #10b981, #059669)' },
+    { id: 'u4', name: 'Noah Taylor', username: 'noah_t', avatar: 'N', bio: 'Traveler 🌍', mutualCount: 1, gradient: 'linear-gradient(135deg, #14b8a6, #06b6d4)' },
 ];
 
-const TRENDING_TAGS = ['#photography', '#coding', '#travel', '#design', '#nature', '#art', '#fitness', '#food'];
+const TRENDING_TAGS = [
+    { tag: '#photography', posts: '12.4k' },
+    { tag: '#coding', posts: '8.7k' },
+    { tag: '#travel', posts: '15.2k' },
+    { tag: '#design', posts: '6.3k' },
+    { tag: '#nature', posts: '9.1k' },
+    { tag: '#art', posts: '7.8k' },
+    { tag: '#fitness', posts: '11.5k' },
+    { tag: '#food', posts: '13.9k' },
+];
 
 /* story images - gradient placeholders */
 const STORY_IMAGES = [
@@ -208,7 +217,56 @@ const StoryViewer = ({ stories, startIndex, onClose }) => {
     const timerRef = useRef(null);
     const DURATION = 5000;
 
+    /* Like state — persisted in localStorage */
+    const [storyLikes, setStoryLikes] = useState(() => {
+        try {
+            const saved = localStorage.getItem('storyLikes');
+            return saved ? JSON.parse(saved) : {};
+        } catch { return {}; }
+    });
+    const [showHeartAnim, setShowHeartAnim] = useState(false);
+
+    useEffect(() => {
+        localStorage.setItem('storyLikes', JSON.stringify(storyLikes));
+    }, [storyLikes]);
+
     const story = stories[current];
+    const storyKey = story.id || `story-${current}`;
+
+    /* Generate consistent mock like counts per story */
+    const baseLikes = useMemo(() => {
+        const counts = {};
+        stories.forEach((s, i) => {
+            const key = s.id || `story-${i}`;
+            // Use a simple hash to get a consistent number per story
+            const hash = key.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+            counts[key] = 12 + (hash % 180);
+        });
+        return counts;
+    }, [stories]);
+
+    const isLiked = !!storyLikes[storyKey];
+    const likeCount = (baseLikes[storyKey] || 0) + (isLiked ? 1 : 0);
+
+    const toggleLike = () => {
+        setStoryLikes((prev) => {
+            const next = { ...prev };
+            if (next[storyKey]) {
+                delete next[storyKey];
+            } else {
+                next[storyKey] = true;
+            }
+            return next;
+        });
+    };
+
+    const handleDoubleTap = () => {
+        if (!isLiked) {
+            setStoryLikes((prev) => ({ ...prev, [storyKey]: true }));
+        }
+        setShowHeartAnim(true);
+        setTimeout(() => setShowHeartAnim(false), 900);
+    };
 
     useEffect(() => {
         setProgress(0);
@@ -279,22 +337,40 @@ const StoryViewer = ({ stories, startIndex, onClose }) => {
 
                 {/* content */}
                 {isUserStory ? (
-                    <div className="story-content story-content-image">
+                    <div className="story-content story-content-image" onDoubleClick={handleDoubleTap}>
                         <img src={story.image} alt="Story" className="story-full-image" />
                         {story.text && (
                             <div className={`story-text-overlay story-text-${story.textPosition || 'center'}`}>
                                 <span>{story.text}</span>
                             </div>
                         )}
+                        {showHeartAnim && <span className="story-heart-burst">❤️</span>}
                     </div>
                 ) : (
-                    <div className="story-content" style={{ background: STORY_IMAGES[current % STORY_IMAGES.length] }}>
+                    <div className="story-content" style={{ background: STORY_IMAGES[current % STORY_IMAGES.length] }} onDoubleClick={handleDoubleTap}>
                         <div className="story-placeholder-text">
                             <span>📸</span>
                             <p>{story.name}'s story</p>
                         </div>
+                        {showHeartAnim && <span className="story-heart-burst">❤️</span>}
                     </div>
                 )}
+
+                {/* footer: like + views */}
+                <div className="story-footer">
+                    <button className={`story-like-btn ${isLiked ? 'liked' : ''}`} onClick={toggleLike} aria-label="Like story">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill={isLiked ? '#ef4444' : 'none'} stroke={isLiked ? '#ef4444' : '#fff'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                        </svg>
+                        <span className="story-like-count">{likeCount}</span>
+                    </button>
+                    <button className="story-action-btn" onClick={() => { navigator.clipboard.writeText(window.location.href).catch(() => { }); }} aria-label="Share story">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13" />
+                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                        </svg>
+                    </button>
+                </div>
 
                 {/* tap zones */}
                 <button className="story-tap story-tap-left" onClick={goPrev} aria-label="Previous story" />
@@ -650,8 +726,10 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                         {/* Other stories */}
                         {MOCK_STORIES.map((s, i) => (
                             <button key={s.id} className="story-tile" onClick={() => openStory(userStories.length + i)}>
-                                <div className="story-ring" style={{ background: s.gradient }}>
-                                    <div className="story-avatar-inner">{s.avatar}</div>
+                                <div className="story-ring" style={{ background: s.ringGradient || s.gradient }}>
+                                    <div className="story-avatar-inner" style={{ background: s.gradient }}>
+                                        <span className="story-avatar-letter">{s.avatar}</span>
+                                    </div>
                                 </div>
                                 <span className="story-name">{s.name}</span>
                             </button>
@@ -677,7 +755,13 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                 {/* ── Feed Top Bar ────────────────────────── */}
                 <div className="feed-top-bar">
                     <div className="feed-header-section">
-                        <h2 className="feed-title">Your Feed</h2>
+                        <h2 className="feed-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#feedGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.4rem' }}>
+                                <defs><linearGradient id="feedGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#c4b5fd" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs>
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" />
+                            </svg>
+                            Your Feed
+                        </h2>
                         <p className="feed-subtitle">
                             {filteredPosts.length > 0
                                 ? `${filteredPosts.length} post${filteredPosts.length > 1 ? 's' : ''} shared`
@@ -861,17 +945,28 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                         <strong>{user?.fullName || 'User'}</strong>
                         <span>@{user?.username || 'user'}</span>
                     </div>
+                    <button className="sidebar-switch-btn" onClick={() => { }}>Switch</button>
+                </div>
+
+                {/* Quick stats */}
+                <div className="sidebar-stats-row">
+                    <div className="stat-item"><strong>{posts?.length || 0}</strong><span>Posts</span></div>
+                    <div className="stat-item"><strong>128</strong><span>Followers</span></div>
+                    <div className="stat-item"><strong>96</strong><span>Following</span></div>
                 </div>
 
                 <div className="sidebar-section">
-                    <h4>Suggested for you</h4>
+                    <div className="sidebar-section-header">
+                        <h4>Suggested for you</h4>
+                        <button className="see-all-btn">See All</button>
+                    </div>
                     <div className="suggested-list">
                         {SUGGESTED_USERS.map((u) => (
                             <div key={u.id} className="suggested-item">
-                                <div className="suggested-avatar" style={{ background: `linear-gradient(135deg, #7c3aed, #a78bfa)` }}>{u.avatar}</div>
+                                <div className="suggested-avatar" style={{ background: u.gradient }}>{u.avatar}</div>
                                 <div className="suggested-info">
                                     <strong>{u.name}</strong>
-                                    <span>{u.bio}</span>
+                                    <span>{u.mutualCount} mutual friends</span>
                                 </div>
                                 <button
                                     className={`follow-btn ${followedUsers.includes(u.id) ? 'following' : ''}`}
@@ -887,16 +982,21 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                 <div className="sidebar-section">
                     <h4>Trending Tags</h4>
                     <div className="trending-tags">
-                        {TRENDING_TAGS.map((tag) => (
+                        {TRENDING_TAGS.map((t) => (
                             <button
-                                key={tag}
-                                className={`tag-chip ${activeTag === tag ? 'active' : ''}`}
-                                onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                                key={t.tag}
+                                className={`tag-chip ${activeTag === t.tag ? 'active' : ''}`}
+                                onClick={() => setActiveTag(activeTag === t.tag ? null : t.tag)}
                             >
-                                {tag}
+                                {t.tag}
+                                <span className="tag-count">{t.posts}</span>
                             </button>
                         ))}
                     </div>
+                </div>
+
+                <div className="sidebar-footer">
+                    <p>© 2026 Social Platform · <a href="#">About</a> · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
                 </div>
             </aside>
 
@@ -912,10 +1012,10 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                             <div className="suggested-list">
                                 {SUGGESTED_USERS.map((u) => (
                                     <div key={u.id} className="suggested-item">
-                                        <div className="suggested-avatar" style={{ background: 'linear-gradient(135deg, #7c3aed, #a78bfa)' }}>{u.avatar}</div>
+                                        <div className="suggested-avatar" style={{ background: u.gradient }}>{u.avatar}</div>
                                         <div className="suggested-info">
                                             <strong>{u.name}</strong>
-                                            <span>{u.bio}</span>
+                                            <span>{u.mutualCount} mutual friends</span>
                                         </div>
                                         <button className={`follow-btn ${followedUsers.includes(u.id) ? 'following' : ''}`} onClick={() => toggleFollow(u.id)}>
                                             {followedUsers.includes(u.id) ? 'Following' : 'Follow'}
@@ -928,9 +1028,9 @@ const Feed = ({ posts, loading, onUpdatePost, onDeletePost, searchQuery, savedPo
                         <div className="sidebar-section">
                             <h4>Trending Tags</h4>
                             <div className="trending-tags">
-                                {TRENDING_TAGS.map((tag) => (
-                                    <button key={tag} className={`tag-chip ${activeTag === tag ? 'active' : ''}`} onClick={() => { setActiveTag(activeTag === tag ? null : tag); setSidebarOpen(false); }}>
-                                        {tag}
+                                {TRENDING_TAGS.map((t) => (
+                                    <button key={t.tag} className={`tag-chip ${activeTag === t.tag ? 'active' : ''}`} onClick={() => { setActiveTag(activeTag === t.tag ? null : t.tag); setSidebarOpen(false); }}>
+                                        {t.tag}
                                     </button>
                                 ))}
                             </div>
