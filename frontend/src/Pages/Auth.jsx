@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import './Auth.css';
+
+const API_BASE = 'http://localhost:3000';
 
 const Auth = ({ onLogin }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -64,35 +67,57 @@ const Auth = ({ onLogin }) => {
         setLoading(true);
         setError('');
 
-        // Simulate API call (replace with real backend API later)
-        setTimeout(() => {
-            setLoading(false);
-
+        try {
             if (isLogin) {
-                // Login - store user and redirect
-                const user = {
-                    fullName: formData.email.split('@')[0],
-                    username: formData.email.split('@')[0],
+                // ── Login ──────────────────────────────────
+                const res = await axios.post(`${API_BASE}/auth/login`, {
                     email: formData.email,
-                    avatar: formData.email.charAt(0).toUpperCase(),
-                };
-                localStorage.setItem('user', JSON.stringify(user));
-                if (onLogin) onLogin(user);
+                    password: formData.password,
+                });
+
+                if (res.data.success && res.data.user) {
+                    const user = {
+                        id: res.data.user.id,
+                        fullName: res.data.user.full_name,
+                        username: res.data.user.username,
+                        email: res.data.user.email,
+                        bio: res.data.user.bio || '',
+                        avatar: (res.data.user.full_name || 'U').charAt(0).toUpperCase(),
+                    };
+                    localStorage.setItem('user', JSON.stringify(user));
+                    if (onLogin) onLogin(user);
+                }
             } else {
-                // Sign up success
-                const user = {
+                // ── Register ───────────────────────────────
+                const res = await axios.post(`${API_BASE}/auth/register`, {
                     fullName: formData.fullName,
                     username: formData.username,
                     email: formData.email,
-                    avatar: formData.fullName.charAt(0).toUpperCase(),
-                };
-                localStorage.setItem('user', JSON.stringify(user));
-                setSuccess('Account created successfully! Logging you in...');
-                setTimeout(() => {
-                    if (onLogin) onLogin(user);
-                }, 1000);
+                    password: formData.password,
+                });
+
+                if (res.data.success && res.data.user) {
+                    const user = {
+                        id: res.data.user.id,
+                        fullName: res.data.user.full_name,
+                        username: res.data.user.username,
+                        email: res.data.user.email,
+                        bio: res.data.user.bio || '',
+                        avatar: (res.data.user.full_name || 'U').charAt(0).toUpperCase(),
+                    };
+                    localStorage.setItem('user', JSON.stringify(user));
+                    setSuccess('Account created successfully! Logging you in...');
+                    setTimeout(() => {
+                        if (onLogin) onLogin(user);
+                    }, 1000);
+                }
             }
-        }, 1200);
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Something went wrong. Please try again.';
+            setError(msg);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const switchMode = () => {
